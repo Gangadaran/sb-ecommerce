@@ -10,10 +10,6 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# ✅ Pass environment variable during build
-ARG VITE_BACK_END_URL
-ENV VITE_BACK_END_URL=$VITE_BACK_END_URL
-
 # Build the app (Vite uses env here)
 RUN npm run build
 
