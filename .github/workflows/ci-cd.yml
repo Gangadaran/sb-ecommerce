@@ -21,6 +21,7 @@ jobs:
           java-version: '21'
 
       - name: Build Backend
+        working-directory: backend
         run: mvn clean package -DskipTests
 
       # Frontend
