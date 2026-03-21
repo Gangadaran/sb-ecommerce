@@ -31,8 +31,8 @@ jobs:
           node-version: '18'
 
       - name: Build Frontend
+        working-directory: frontend
         run: |
-          cd ecom-frontend
           npm install
           npm run build
 
