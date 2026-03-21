@@ -42,10 +42,10 @@ jobs:
 
       # Build Images
       - name: Build Backend Image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:latest .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:latest ./backend
 
       - name: Build Frontend Image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:latest ./ecom-frontend
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:latest ./frontend
 
       # Push Images
       - name: Push Backend Image
