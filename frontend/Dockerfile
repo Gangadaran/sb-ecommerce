@@ -1,22 +1,31 @@
-# Stage 1: Build
+# Stage 1: Build (React/Vite)
 FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# Install dependencies
 COPY package.json package-lock.json ./
 RUN npm install
 
+# Copy source code
 COPY . .
+
+# ✅ Pass environment variable during build
+ARG VITE_BACK_END_URL
+ENV VITE_BACK_END_URL=$VITE_BACK_END_URL
+
+# Build the app (Vite uses env here)
 RUN npm run build
 
-# Stage 2: Serve with Nginx
+
+# Stage 2: Serve using Nginx
 FROM nginx:alpine
 
+# Copy built files to Nginx
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Optional: custom nginx config (for routing)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
-
+# Expose port
 EXPOSE 80
 
+# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
