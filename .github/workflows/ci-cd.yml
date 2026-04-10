@@ -1,55 +1,66 @@
 name: CI/CD Pipeline
 
 on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch:
+push:
+branches: [ "main" ]
+workflow_dispatch:
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+build-and-push:
+runs-on: ubuntu-latest
+  
+  ```
+steps:
+  # Checkout code
+  - name: Checkout code
+    uses: actions/checkout@v4
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # ================= BACKEND =================
+  - name: Set up Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: 'temurin'
+      java-version: '21'
 
-      # Backend
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+  - name: Build Backend
+    working-directory: backend
+    run: mvn clean package -DskipTests
 
-      - name: Build Backend
-        working-directory: backend
-        run: mvn clean package -DskipTests
+  # ================= FRONTEND =================
+  - name: Set up Node
+    uses: actions/setup-node@v4
+    with:
+      node-version: '18'
 
-      # Frontend
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
+  - name: Build Frontend
+    working-directory: frontend
+    run: |
+      echo "VITE_BACK_END_URL=http://backend:8080" > .env
+      npm ci
+      npm run build
 
-      - name: Build Frontend
-        working-directory: frontend
-        run: |
-          npm install
-          npm run build
+  # ================= DOCKER =================
+  - name: Login to Docker Hub
+    run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      # Docker Login
-      - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+  - name: Build Backend Image
+    run: docker build -t ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:${{ github.sha }} ./backend
 
-      # Build Images
-      - name: Build Backend Image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:latest ./backend
+  - name: Build Frontend Image
+    run: docker build -t ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:${{ github.sha }} ./frontend
 
-      - name: Build Frontend Image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:latest ./frontend
+  - name: Tag Latest Images
+    run: |
+      docker tag ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:latest
+      docker tag ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:latest
 
-      # Push Images
-      - name: Push Backend Image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:latest
+  - name: Push Backend Image
+    run: |
+      docker push ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:${{ github.sha }}
+      docker push ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:latest
 
-      - name: Push Frontend Image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:latest
+  - name: Push Frontend Image
+    run: |
+      docker push ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:${{ github.sha }}
+      docker push ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:latest
+  ```
