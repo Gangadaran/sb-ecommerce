@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
 push:
-branches: [ "main" ]
+branches: ["main"]
 workflow_dispatch:
 
 jobs:
@@ -11,22 +11,22 @@ runs-on: ubuntu-latest
   
   ```
 steps:
-  # Checkout code
+  # Checkout
   - name: Checkout code
     uses: actions/checkout@v4
 
-  # ================= BACKEND =================
+  # ===== Backend =====
   - name: Set up Java
     uses: actions/setup-java@v4
     with:
-      distribution: 'temurin'
+      distribution: temurin
       java-version: '21'
 
   - name: Build Backend
     working-directory: backend
     run: mvn clean package -DskipTests
 
-  # ================= FRONTEND =================
+  # ===== Frontend =====
   - name: Set up Node
     uses: actions/setup-node@v4
     with:
@@ -39,21 +39,25 @@ steps:
       npm ci
       npm run build
 
-  # ================= DOCKER =================
+  # ===== Docker Login =====
   - name: Login to Docker Hub
-    run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+    run: |
+      echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
+  # ===== Build Images =====
   - name: Build Backend Image
     run: docker build -t ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:${{ github.sha }} ./backend
 
   - name: Build Frontend Image
     run: docker build -t ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:${{ github.sha }} ./frontend
 
+  # ===== Tag Images =====
   - name: Tag Latest Images
     run: |
       docker tag ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:latest
       docker tag ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:latest
 
+  # ===== Push Images =====
   - name: Push Backend Image
     run: |
       docker push ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:${{ github.sha }}
@@ -63,4 +67,3 @@ steps:
     run: |
       docker push ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:${{ github.sha }}
       docker push ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:latest
-  ```
