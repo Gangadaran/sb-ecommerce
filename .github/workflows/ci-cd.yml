@@ -1,68 +1,68 @@
 name: CI/CD Pipeline
 
 on:
-push:
-branches:
-  - main
-workflow_dispatch:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-build-and-deploy:
-runs-on: ubuntu-latest
+  build-and-deploy:
+    runs-on: ubuntu-latest
 
-steps:
-  - name: Checkout code
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  # ---------------- BACKEND ----------------
-  - name: Set up Java
-    uses: actions/setup-java@v4
-    with:
-      distribution: temurin
-      java-version: '21'
+      # ---------------- BACKEND ----------------
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
 
-  - name: Build Backend
-    working-directory: backend
-    run: mvn clean package -DskipTests
+      - name: Build Backend
+        working-directory: backend
+        run: mvn clean package -DskipTests
 
-  # ---------------- FRONTEND ----------------
-  - name: Set up Node
-    uses: actions/setup-node@v4
-    with:
-      node-version: '18'
+      # ---------------- FRONTEND ----------------
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-  - name: Build Frontend
-    working-directory: frontend
-    run: |
-      echo "VITE_BACK_END_URL=http://43.205.195.156:8080" > .env
-      npm ci
-      npm run build
+      - name: Build Frontend
+        working-directory: frontend
+        run: |
+          echo "VITE_BACK_END_URL=http://43.205.195.156:8080" > .env
+          npm ci
+          npm run build
 
-  # ---------------- DOCKER ----------------
-  - name: Login to Docker Hub
-    run: |
-      echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      # ---------------- DOCKER ----------------
+      - name: Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-  - name: Build Images
-    run: |
-      docker build -t ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:latest ./backend
-      docker build --no-cache -t ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:latest ./frontend
+      - name: Build Images
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:latest ./backend
+          docker build --no-cache -t ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:latest ./frontend
 
-  - name: Push Images
-    run: |
-      docker push ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:latest
-      docker push ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:latest
+      - name: Push Images
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/sb-ecom-backend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:latest
 
-  # ---------------- DEPLOY ----------------
-  - name: Deploy to EC2
-    uses: appleboy/ssh-action@v1.0.3
-    with:
-      host: ${{ secrets.EC2_HOST }}
-      username: ubuntu
-      key: ${{ secrets.EC2_KEY }}
-      script: |
-        cd ~
-        docker-compose down
-        docker-compose pull
-        docker-compose up -d
-        docker image prune -f
+      # ---------------- DEPLOY ----------------
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd ~
+            docker-compose down
+            docker-compose pull
+            docker-compose up -d
+            docker image prune -f
