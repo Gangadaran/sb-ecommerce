@@ -1,14 +1,15 @@
+version: '3.8'
+
 services:
 
   db:
     image: postgres:15
     container_name: sb-ecom-db
+    restart: always
     environment:
       POSTGRES_DB: ecommerce
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
@@ -21,6 +22,7 @@ services:
   backend:
     image: gangadarans/sb-ecom-backend:latest
     container_name: sb-ecom-backend
+    restart: always
     depends_on:
       db:
         condition: service_healthy
@@ -36,6 +38,7 @@ services:
   frontend:
     image: gangadarans/sb-ecom-frontend:latest
     container_name: sb-ecom-frontend
+    restart: always
     depends_on:
       - backend
     ports:
