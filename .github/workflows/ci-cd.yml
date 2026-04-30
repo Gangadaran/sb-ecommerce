@@ -34,7 +34,7 @@ jobs:
       - name: Build Frontend
         working-directory: frontend
         run: |
-          echo "VITE_BACK_END_URL=${{ secrets.gi }}" > .env
+          echo "VITE_BACK_END_URL=${{ secrets.VITE_BACKEND_URL }}" > .env
           npm ci
           npm run build
 
