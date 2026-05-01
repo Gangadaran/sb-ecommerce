@@ -64,7 +64,7 @@ jobs:
       - name: Checkout Test Repo
         uses: actions/checkout@v4
         with:
-          repository: https://github.com/Gangadaran/sb-ecommerce-test   # 🔥 change this
+          repository: Gangadaran/sb-ecommerce-test   # 🔥 change this
 
       - name: Run API + UI Tests
         run: |
