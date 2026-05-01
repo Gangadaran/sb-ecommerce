@@ -68,7 +68,7 @@ jobs:
 
       - name: Run API + UI Tests
         run: |
-          mvn test -DbaseUrl=http://3.7.60.195
+          mvn test
 
   # ---------------- DEPLOY ----------------
   deploy:
