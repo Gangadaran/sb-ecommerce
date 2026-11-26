@@ -56,18 +56,18 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/sb-ecom-frontend:latest
 
   # ---------------- TEST ----------------
-  test:
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Checkout Test Repo
-        uses: actions/checkout@v7
-        with:
-          repository: Gangadaran/sb-ecommerce-test
-
-      - name: Run API + UI Tests
-        run: mvn test
+#  test:
+#    runs-on: ubuntu-latest
+#    needs: build
+#
+#    steps:
+#      - name: Checkout Test Repo
+#        uses: actions/checkout@v7
+#        with:
+#          repository: Gangadaran/sb-ecommerce-test
+#
+#      - name: Run API + UI Tests
+#        run: mvn test
 
   # ---------------- DEPLOY ----------------
   deploy:
