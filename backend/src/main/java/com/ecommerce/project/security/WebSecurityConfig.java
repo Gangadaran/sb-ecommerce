@@ -103,12 +103,15 @@ public class WebSecurityConfig {
     }
 
     // CORS Configuration
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
+                "http://localhost:5173",
                 "http://54.153.164.199:3000"
         ));
 
