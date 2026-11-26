@@ -50,13 +50,15 @@ public class WebSecurityConfig {
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
+        DaoAuthenticationProvider authProvider =
+                new DaoAuthenticationProvider(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
@@ -65,16 +67,17 @@ public class WebSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // ✅ FIXED SECURITY CONFIG
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ FIXED
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .exceptionHandling(exception ->
+                        exception.authenticationEntryPoint(unauthorizedHandler))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ✅ important
+                        auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/v3/api-docs/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
@@ -89,24 +92,41 @@ public class WebSecurityConfig {
 
         http.authenticationProvider(authenticationProvider());
 
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(
+                authenticationJwtTokenFilter(),
+                UsernamePasswordAuthenticationFilter.class);
 
-        http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
+        http.headers(headers ->
+                headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
 
         return http.build();
     }
 
-    // ✅ NEW: Proper CORS CONFIGURATION
+    // CORS Configuration
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of("http://3.7.60.195:3000")); // frontend URL
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "http://54.153.164.199:3000"
+        ));
+
+        config.setAllowedMethods(List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "PATCH",
+                "OPTIONS"
+        ));
+
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
         source.registerCorsConfiguration("/**", config);
 
         return source;
@@ -114,45 +134,59 @@ public class WebSecurityConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web -> web.ignoring().requestMatchers(
+        return web -> web.ignoring().requestMatchers(
                 "/v2/api-docs",
                 "/configuration/ui",
                 "/swagger-resources/**",
                 "/configuration/security",
                 "/swagger-ui.html",
                 "/webjars/**"
-        ));
+        );
     }
 
     @Bean
-    public CommandLineRunner initData(RoleRepository roleRepository,
-                                      UserRepository userRepository,
-                                      PasswordEncoder passwordEncoder) {
+    public CommandLineRunner initData(
+            RoleRepository roleRepository,
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
+
         return args -> {
 
             Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
-                    .orElseGet(() -> roleRepository.save(new Role(AppRole.ROLE_USER)));
+                    .orElseGet(() ->
+                            roleRepository.save(new Role(AppRole.ROLE_USER)));
 
             Role sellerRole = roleRepository.findByRoleName(AppRole.ROLE_SELLER)
-                    .orElseGet(() -> roleRepository.save(new Role(AppRole.ROLE_SELLER)));
+                    .orElseGet(() ->
+                            roleRepository.save(new Role(AppRole.ROLE_SELLER)));
 
             Role adminRole = roleRepository.findByRoleName(AppRole.ROLE_ADMIN)
-                    .orElseGet(() -> roleRepository.save(new Role(AppRole.ROLE_ADMIN)));
+                    .orElseGet(() ->
+                            roleRepository.save(new Role(AppRole.ROLE_ADMIN)));
 
             Set<Role> userRoles = Set.of(userRole);
             Set<Role> sellerRoles = Set.of(sellerRole);
             Set<Role> adminRoles = Set.of(userRole, sellerRole, adminRole);
 
             if (!userRepository.existsByUserName("user1")) {
-                userRepository.save(new User("user1", "user1@example.com", passwordEncoder.encode("password1")));
+                userRepository.save(new User(
+                        "user1",
+                        "user1@example.com",
+                        passwordEncoder.encode("password1")));
             }
 
             if (!userRepository.existsByUserName("seller1")) {
-                userRepository.save(new User("seller1", "seller1@example.com", passwordEncoder.encode("password2")));
+                userRepository.save(new User(
+                        "seller1",
+                        "seller1@example.com",
+                        passwordEncoder.encode("password2")));
             }
 
             if (!userRepository.existsByUserName("admin")) {
-                userRepository.save(new User("admin", "admin@example.com", passwordEncoder.encode("adminPass")));
+                userRepository.save(new User(
+                        "admin",
+                        "admin@example.com",
+                        passwordEncoder.encode("adminPass")));
             }
 
             userRepository.findByUserName("user1").ifPresent(user -> {
