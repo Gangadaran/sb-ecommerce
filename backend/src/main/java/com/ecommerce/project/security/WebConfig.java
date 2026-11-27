@@ -1,3 +1,4 @@
+
 package com.ecommerce.project.security;
 
 import org.springframework.context.annotation.Configuration;
@@ -9,13 +10,21 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+
         registry.addMapping("/**")
                 .allowedOrigins(
                         "http://localhost:3000",
                         "http://localhost:5173",
                         "http://54.153.164.199:3000"
                 )
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedMethods(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE",
+                        "PATCH",
+                        "OPTIONS"
+                )
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
